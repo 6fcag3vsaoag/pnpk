@@ -1,51 +1,52 @@
 #include "BankAccount.h"
 #include <iostream>
 
-BankAccount::BankAccount(int id, double initialBalance, const std::string& curr)
-    : accountId(id), balance(initialBalance), currency(curr) {}
-
-int BankAccount::getAccountId() const { return accountId; }
-double BankAccount::getBalance() const { return balance; }
-std::string BankAccount::getCurrency() const { return currency; }
-
-bool BankAccount::PayOrder(double amount) {
-    if (amount <= 0) {
-        std::cout << "Error: Payment amount must be positive.\n";
-        return false;
-    }
-    if (balance < amount) {
-        std::cout << "Error: Insufficient funds. Balance: " << balance << " " << currency << "\n";
-        return false;
-    }
-    balance -= amount;
-    std::cout << "Payment of " << amount << " " << currency << " successful. New balance: " << balance << "\n";
-    return true;
+BankAccount::BankAccount(int id, double bal, const std::string& curr)
+    : accountId(id), balance(bal), currency(curr) {
 }
 
-bool BankAccount::TransferTo(BankAccount* target, double amount) {
-    if (!target) {
-        std::cout << "Error: Target account is null.\n";
-        return false;
+int BankAccount::getAccountId() const {
+    return accountId;
+}
+
+double BankAccount::getBalance() const {
+    return balance;
+}
+
+const char* BankAccount::getCurrency() const {
+    return currency.c_str();
+}
+
+bool BankAccount::PayOrder(double amount) {
+    if (balance >= amount) {
+        balance -= amount;
+        return true;
     }
-    if (amount <= 0) {
-        std::cout << "Error: Transfer amount must be positive.\n";
-        return false;
+    return false;
+}
+
+bool BankAccount::TransferTo(BankAccount& target, double amount) {
+    if (balance >= amount) {
+        balance -= amount;
+        target.deposit(amount);
+        return true;
     }
-    if (balance < amount) {
-        std::cout << "Error: Insufficient funds for transfer. Balance: " << balance << " " << currency << "\n";
-        return false;
-    }
-    balance -= amount;
-    target->balance += amount; // Прямой доступ, так как в рамках одного класса/дружественной логики
-    std::cout << "Transfer of " << amount << " " << currency << " to account " << target->getAccountId() << " successful.\n";
-    return true;
+    return false;
 }
 
 void BankAccount::CloseAccount() {
-    if (balance != 0) {
-        std::cout << "Warning: Account " << accountId << " closed with non-zero balance: " << balance << " " << currency << "\n";
-    } else {
-        std::cout << "Account " << accountId << " successfully closed.\n";
+    balance = 0.0;
+    std::cout << "Банковский аккаунт " << accountId << " закрыт" << std::endl;
+}
+
+void BankAccount::deposit(double amount) {
+    balance += amount;
+}
+
+bool BankAccount::withdraw(double amount) {
+    if (balance >= amount) {
+        balance -= amount;
+        return true;
     }
-    // В реальной системе здесь мог бы быть код для архивации или блокировки в БД.
+    return false;
 }

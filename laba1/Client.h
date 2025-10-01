@@ -1,40 +1,50 @@
 #ifndef CLIENT_H
 #define CLIENT_H
 
+#include "IClient.h"
+#include "IBankAccount.h"
+#include "ICreditCard.h"
+#include "IOrder.h"
+#include <vector>
 #include <string>
-#include "BankAccount.h"
-#include "CreditCard.h"
 
-class Client {
+class BankAccount;
+class CreditCard;
+class Order;
+
+class Client : public IClient {
 private:
     int clientId;
     std::string name;
     std::string phoneNumber;
-
-    BankAccount* account; // Ассоциация: один счет
-    CreditCard* card;     // Ассоциация: одна карта
+    BankAccount* account;
+    CreditCard* card;
+    std::vector<Order*> orders;
 
 public:
-    Client(int id, const std::string& clientName, const std::string& phone);
-    ~Client(); // Деструктор для корректного удаления
+    Client(int id, const std::string& name, const std::string& phone);
+    ~Client();
 
     // Геттеры
-    int getClientId() const;
-    std::string getName() const;
-    std::string getPhoneNumber() const;
+    int getClientId() const override;
+    const char* getName() const override;
+    const char* getPhoneNumber() const override;
 
-    // Управление счетом и картой
-    void setBankAccount(BankAccount* acc);
-    void setCreditCard(CreditCard* cc);
+    // Методы для работы с аккаунтом и картой
+    void setBankAccount(BankAccount* account);
+    void setCreditCard(CreditCard* card);
+    BankAccount* getBankAccount();
+    CreditCard* getCreditCard();
 
-    BankAccount* getBankAccount() const;
-    CreditCard* getCreditCard() const;
+    // Методы платежей
+    bool payOrder(double amount) override;
+    bool transferTo(BankAccount& target, double amount) override;
+    void closeAccount() override;
+    void blockCard() override;
 
-    // Операции клиента
-    bool payOrder(double amount);
-    bool transferTo(BankAccount* target, double amount);
-    void closeAccount();
-    void blockCard();
+    // Методы для работы с заказами
+    void addOrder(Order* order);
+    const std::vector<Order*>& getOrders() const;
 };
 
-#endif // CLIENT_H
+#endif

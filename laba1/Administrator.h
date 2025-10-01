@@ -1,23 +1,25 @@
 #ifndef ADMINISTRATOR_H
 #define ADMINISTRATOR_H
 
-#include "CreditCard.h"
+#include "IAdministrator.h"
+#include <string>
 
-class Administrator {
+class CreditCard;
+
+class Administrator : public IAdministrator {
 private:
     int adminId;
     std::string name;
 
 public:
-    Administrator(int id, const std::string& adminName);
-    ~Administrator() = default;
+    Administrator(int id, const std::string& name);
 
     // Геттеры
-    int getAdminId() const;
-    std::string getName() const;
+    int getAdminId() const override;
+    const char* getName() const override;
 
-    // Операции
-    void BlockCardForOverlimit(CreditCard* card);
+    // Методы управления
+    void BlockCardForOverlimit(CreditCard& card) override;
 };
 
-#endif // ADMINISTRATOR_H
+#endif

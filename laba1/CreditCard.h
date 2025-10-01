@@ -1,9 +1,10 @@
-#ifndef CREDIT_CARD_H
-#define CREDIT_CARD_H
+#ifndef CREDITCARD_H
+#define CREDITCARD_H
 
+#include "ICreditCard.h"
 #include <string>
 
-class CreditCard {
+class CreditCard : public ICreditCard {
 private:
     std::string cardNumber;
     double creditLimit;
@@ -12,17 +13,21 @@ private:
 
 public:
     CreditCard(const std::string& number, double limit);
-    ~CreditCard() = default;
 
     // Геттеры
-    std::string getCardNumber() const;
-    double getCreditLimit() const;
-    double getCurrentDebt() const;
-    bool isCardBlocked() const;
+    const char* getCardNumber() const override;
+    double getCreditLimit() const override;
+    double getCurrentDebt() const override;
+    bool isCardBlocked() const override;
 
-    // Операции
-    void BlockCard();
-    void AddDebt(double amount); // Вспомогательный метод для демонстрации
+    // Методы управления картой
+    void BlockCard() override;
+    void AddDebt(double amount) override;
+
+    // Дополнительные методы
+    bool canMakePurchase(double amount);
+    void makePayment(double amount);
+    double getAvailableCredit() const;
 };
 
-#endif // CREDIT_CARD_H
+#endif

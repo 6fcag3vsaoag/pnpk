@@ -1,53 +1,109 @@
 #include "Client.h"
+#include "BankAccount.h"
+#include "CreditCard.h"
+#include "Order.h"
 #include <iostream>
 
 Client::Client(int id, const std::string& clientName, const std::string& phone)
-    : clientId(id), name(clientName), phoneNumber(phone), account(nullptr), card(nullptr) {}
+    : clientId(id), name(clientName), phoneNumber(phone), account(nullptr), card(nullptr) {
+}
 
 Client::~Client() {
-    // Не удаляем account и card, так как они могут управляться внешней логикой
-    // (например, администратором или системой). Это предотвращает двойное удаление.
+    for (Order* order : orders) {
+        delete order;
+    }
 }
 
-int Client::getClientId() const { return clientId; }
-std::string Client::getName() const { return name; }
-std::string Client::getPhoneNumber() const { return phoneNumber; }
+// Геттеры
+int Client::getClientId() const {
+    return clientId;
+}
 
-void Client::setBankAccount(BankAccount* acc) { account = acc; }
-void Client::setCreditCard(CreditCard* cc) { card = cc; }
+const char* Client::getName() const {
+    return name.c_str();
+}
 
-BankAccount* Client::getBankAccount() const { return account; }
-CreditCard* Client::getCreditCard() const { return card; }
+const char* Client::getPhoneNumber() const {
+    return phoneNumber.c_str();
+}
 
+// Методы для работы с аккаунтом и картой
+void Client::setBankAccount(BankAccount* acc) {
+    account = acc;
+}
+
+void Client::setCreditCard(CreditCard* creditCard) {
+    card = creditCard;
+}
+
+BankAccount* Client::getBankAccount() {
+    return account;
+}
+
+CreditCard* Client::getCreditCard() {
+    return card;
+}
+
+// Методы платежей
 bool Client::payOrder(double amount) {
-    if (!account) {
-        std::cout << "Error: No bank account linked to client.\n";
+    if (!account || !card) {
+        std::cout << "Клиент не имеет аккаунта или карты" << std::endl;
         return false;
     }
-    return account->PayOrder(amount);
+
+    if (card->isCardBlocked()) {
+        std::cout << "Карта заблокирована" << std::endl;
+        return false;
+    }
+
+    // Проверяем доступный кредит
+    if (card->canMakePurchase(amount)) {
+        // Снимаем деньги с банковского счета
+        if (account->PayOrder(amount)) {
+            // Добавляем долг на кредитную карту
+            card->AddDebt(amount);
+            std::cout << "Заказ оплачен успешно на сумму: " << amount << std::endl;
+            return true;
+        }
+    }
+
+    std::cout << "Недостаточно средств для оплаты заказа" << std::endl;
+    return false;
 }
 
-bool Client::transferTo(BankAccount* target, double amount) {
+bool Client::transferTo(BankAccount& target, double amount) {
     if (!account) {
-        std::cout << "Error: No bank account linked to client.\n";
+        std::cout << "Клиент не имеет банковского аккаунта" << std::endl;
         return false;
     }
-    return account->TransferTo(target, amount);
+
+    if (account->TransferTo(target, amount)) {
+        std::cout << "Перевод выполнен успешно на сумму: " << amount << std::endl;
+        return true;
+    }
+
+    return false;
 }
 
 void Client::closeAccount() {
     if (account) {
         account->CloseAccount();
-        // account = nullptr; // Опционально: снять ссылку после закрытия
-    } else {
-        std::cout << "No account to close.\n";
+        std::cout << "Аккаунт закрыт" << std::endl;
     }
 }
 
 void Client::blockCard() {
     if (card) {
         card->BlockCard();
-    } else {
-        std::cout << "No card to block.\n";
+        std::cout << "Карта заблокирована клиентом" << std::endl;
     }
+}
+
+// Методы для работы с заказами
+void Client::addOrder(Order* order) {
+    orders.push_back(order);
+}
+
+const std::vector<Order*>& Client::getOrders() const {
+    return orders;
 }

@@ -1,26 +1,31 @@
-#ifndef BANK_ACCOUNT_H
-#define BANK_ACCOUNT_H
+#ifndef BANKACCOUNT_H
+#define BANKACCOUNT_H
+
+#include "IBankAccount.h"
 #include <string>
 
-class BankAccount {
+class BankAccount : public IBankAccount {
 private:
     int accountId;
     double balance;
     std::string currency;
 
 public:
-    BankAccount(int id, double initialBalance, const std::string& curr);
-    ~BankAccount() = default;
+    BankAccount(int id, double balance, const std::string& currency);
 
     // Геттеры
-    int getAccountId() const;
-    double getBalance() const;
-    std::string getCurrency() const;
+    int getAccountId() const override;
+    double getBalance() const override;
+    const char* getCurrency() const override;
 
-    // Основные операции
-    bool PayOrder(double amount);
-    bool TransferTo(BankAccount* target, double amount);
-    void CloseAccount();
+    // Методы платежей
+    bool PayOrder(double amount) override;
+    bool TransferTo(BankAccount& target, double amount) override;
+    void CloseAccount() override;
+
+    // Дополнительные методы
+    void deposit(double amount);
+    bool withdraw(double amount);
 };
 
-#endif // BANK_ACCOUNT_H
+#endif
